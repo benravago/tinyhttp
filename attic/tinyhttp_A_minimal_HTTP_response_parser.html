@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" itemscope="" itemtype="http://schema.org/Article" lang="en-us"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta charset="utf-8">
+		<title>tinyhttp - A minimal HTTP response parser</title>
+		
+		<meta name="author" content="Matthew Endsley">
+		<meta property="og:title" content="tinyhttp - A minimal HTTP response parser">
+		<meta property="og:image" content="http://mendsley.github.com/images/tinyhttp/table-thumb.png">
+		<meta property="og:url" content="http://mendsley.github.com/2012/12/19/tinyhttp.html">
+		<link rel="image_src" href="http://mendsley.github.com/images/tinyhttp/table-thumb.png">
+
+		<meta itemprop="name" content="tinyhttp - A minimal HTTP response parser">
+		<meta itemprop="description" content="">
+		<meta itemprop="image" content="http://mendsley.github.com/images/tinyhttp/table-thumb.png">
+		
+		<link rel="stylesheet" href="tinyhttp_A_minimal_HTTP_response_parser_files/screen.css" type="text/css" media="screen, projection">
+		<link rel="stylesheet" href="tinyhttp_A_minimal_HTTP_response_parser_files/syntax.css" type="text/css">
+		<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" type="text/css">
+
+		<script type="text/javascript" async="" src="tinyhttp_A_minimal_HTTP_response_parser_files/ga.js"></script><script type="text/javascript">
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-37222777-1']);
+			_gaq.push(['_trackPageview']);
+
+			(function() {
+				 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
+		</script>
+	<script type="text/javascript" async="" src="http://learningtogamedev.disqus.com/embed.js"></script></head>
+
+	<body>
+		<div class="site">
+			<div class="title">
+				<a href="https://mendsley.github.io/atom.xml"><img alt="rss feed" src="tinyhttp_A_minimal_HTTP_response_parser_files/rss14.png"></a>
+				<a href="https://mendsley.github.io/">Matthew Endsley</a>
+				<a class="extra" href="https://mendsley.github.io/">home</a>
+			</div>
+
+			<div itemscope="itemscope" itemtype="http://schema.org/Product">
+</div>
+
+<div id="post">
+
+<h1>tinyhttp - A minimal HTTP response parser</h1>
+
+<p class="meta"><img alt="author" src="tinyhttp_A_minimal_HTTP_response_parser_files/matt_icon.png">19 December 2012 - Seattle</p>
+
+<p>I’ve finally found some time to cleanup and package the C-based HTTP parser we use for <a href="http://airmech.com/">AirMech</a>.</p>
+
+<p>One of the main goals was to have as minimal an implementation as possible, with no dependencies. Well, I cheated and used <code>memcpy</code> and <code>tolower</code> from <code>&lt;string.h&gt;</code> and <code>&lt;ctype.h&gt;</code>. It’s also written so it will compile either as C89 code or embedded as C++98 code (I’m looking at you Visual Studio).</p>
+
+<p>The real meat of the parser handles HTTP headers and the chunked 
+transfer-encoding scheme. The implementation makes extensive use of 
+compact lookup tables to drive the overall parsing machine. These 
+parsers have minimal state (an integer) and work on a single character 
+at at time.</p>
+
+<p><img src="tinyhttp_A_minimal_HTTP_response_parser_files/chart-table.png" alt="Lookup table"></p>
+
+<p>The HTTP header table has 2 parts. First, each <em>row</em> of the 
+table corresponds to a state in the parsing machine. Second, the 
+incoming character is mapped to a character class in the range 0-6. Zero
+ as a catch-all <strong>character class</strong>, since only a few 
+characters can actually drive transitions in the state machine. The 
+intersection of the current parsing row state along with the column 
+mapped to the character class gives the <strong>opcode</strong> to process.</p>
+
+<p>An opcode contains 2 separate pieces of information: the next parser 
+state and the semantics of the character. The next state obviously 
+drives the row to use for parsing subsequent characters. The semantic 
+value of the character is important for determining what to do with the 
+character; is it a part of a header key/value pair, part of the status 
+code or something else? Unfortunately the target state alone is 
+ambiguous for semantics. Rather than complicate the encoding with both 
+source and target states, the table simply builds unique values for each
+ semantic case ensuring that the lower four bits of each entry map to 
+the target state index.</p>
+
+<p><img src="tinyhttp_A_minimal_HTTP_response_parser_files/chart-code.png" alt="Lookup table"></p>
+
+<p>In addition, <code>http.h</code> defines a wrapper to drive the two 
+parsers and pull out the bits that are critical to handling the response
+ body (such as Content-Length and Transfer-Encoding). Because you’re not
+ likely to be reading data from the network one character at a time, 
+this wrapper takes a block of data and parses as much as it can, feeding
+ you raw body data as it goes.</p>
+
+<p>The inspiration for this style of parser comes from the <a href="http://bjoern.hoehrmann.de/utf-8/decoder/dfa/">Flexible and Economical UTF-8 Decoder</a>
+ by Bjoern Hoehrmann, which turned my view of parsers upside down when I
+ first saw it. It’s definitely worth a read as a welcome reprieve from 
+the myriad of bloated, over-engineered UTF-8 projects.</p>
+
+<p>The entire project has been uploaded to my github space under <a href="https://github.com/mendsley/tinyhttp">https://github.com/mendsley/tinyhttp</a>. The code is available under the permissive BSD license, which means you’re able to use it in proprietary software.</p>
+
+<p>Because this was built to address the specific need of handling web 
+traffic for AirMech, the only features are the ones we needed. Feel free
+ to make suggestions and submit changes via github.</p>
+
+</div>
+
+<div id="related">
+	<h2>Related Posts</h2>
+	<ul class="posts">
+	
+		<li>
+			<span>23 Dec 2012</span> »
+			<a href="https://mendsley.github.io/2012/12/23/ruining-christmas.html">Amazon Game Connect or: How I Almost Ruined Christmas</a>
+		</li>
+	
+	</ul>
+</div>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+	var disqus_shortname = 'learningtogamedev';
+
+	(function() {
+		var dsq = document.createElement('script'); dsq.type='text/javascript'; dsq.async = true;
+		dsq.src = 'http://'+disqus_shortname+'.disqus.com/embed.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	 })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com/" class="dsq-brlink">commends powered by <span class="logo-disqus">Disqus</span></a>
+
+
+		</div>
+		<a href="https://plus.google.com/108692310408288996137?rel=author">Google+</a>
+	
+
+</body></html>
