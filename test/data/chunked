@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK~
+Content-Type: application/octet-stream~
+Transfer-Encoding: chunked~
+~
+c~
+<h1>go!</h1>~
+1b~
+<h1>first chunk loaded</h1>~
+2a~
+<h1>second chunk loaded and displayed</h1>~
+29~
+<h1>third chunk loaded and displayed</h1>~
+0~
+~

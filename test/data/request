@@ -1,0 +1,6 @@
+GET /path/file.html HTTP/1.0~
+From: someuser@HTTPTool.com~
+User-Agent: HTTPTool/1.0~
+~
+content is unused if there is no Content-Length header~
+~

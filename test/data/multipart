@@ -1,0 +1,22 @@
+POST /dir/ HTTP/1.0~
+Content-Type: multipart/form-data; boundary=abcdef~
+Content-Length: 440~
+~
+--abcdef~
+Content-Disposition: form-data; name="name"; filename="filename"~
+Content-Type: application/octet-stream~
+~
+<h1>go!</h1>~
+--abcdef~
+Content-Disposition: form-data; name="chunk.1"~
+~
+<h1>first chunk loaded</h1>~
+--abcdef~
+Content-Disposition: form-data; name="chunk.2"~
+~
+<h1>second chunk loaded and displayed</h1>~
+--abcdef~
+Content-Disposition: form-data; name="chunk.3"~
+~
+<h1>third chunk loaded and displayed</h1>~
+--abcdef--~
